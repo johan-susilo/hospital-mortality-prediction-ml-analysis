@@ -1,0 +1,42 @@
+=== PIPELINE EVALUATION REPORT ===
+
+==================================================
+ QUESTION 2: REGULARIZED VS UNREGULARIZED MODELS
+==================================================
+[Baseline (Predict All Survive)] Test PR-AUC: 0.159
+
+[Unregularized Logistic]
+  PR-AUC     | Train: 0.785 | Test: 0.540 | Drop: 0.245
+  ROC-AUC    | Train: 0.938 | Test: 0.821
+  Brier Loss | Train: 0.067 | Test: 0.111
+
+Best LASSO Parameter: {'C': 1.0}
+[LASSO (L1) Logistic]
+  PR-AUC     | Train: 0.755 | Test: 0.540 | Drop: 0.215
+  ROC-AUC    | Train: 0.922 | Test: 0.837
+  Brier Loss | Train: 0.072 | Test: 0.106
+
+Best Ridge Parameter: {'C': 1.0}
+[Ridge (L2) Logistic]
+  PR-AUC     | Train: 0.757 | Test: 0.545 | Drop: 0.212
+  ROC-AUC    | Train: 0.927 | Test: 0.840
+  Brier Loss | Train: 0.072 | Test: 0.106
+
+==================================================
+ QUESTION 3: NON-LINEAR EFFECTS (GAMs)
+==================================================
+-> GAM Non-Linearity Plots saved to: reports/figures/gam_partial_dependence_plots.png
+
+==================================================
+ QUESTION 4: TREE-BASED MODELS & INTERACTIONS
+==================================================
+Best RF Parameters: {'n_estimators': 200, 'min_samples_split': 2, 'min_samples_leaf': 2, 'max_features': 'log2', 'max_depth': None}
+[Random Forest Classifier]
+  PR-AUC     | Train: 0.993 | Test: 0.649 | Drop: 0.344
+  ROC-AUC    | Train: 0.999 | Test: 0.864
+  Brier Loss | Train: 0.049 | Test: 0.105
+
+-> Feature Importance Plot saved to: reports/figures/rf_feature_importance.png
+
+✅ All models saved successfully to ./models
+✅ Text summary saved to: reports/figures/evaluation_results.txt

@@ -85,7 +85,7 @@ def build_preprocessor() -> ColumnTransformer:
     ("num", numerical_pipeline, NUMERIC_COLS),
     ("cat", categorical_pipeline, CATEGORICAL_COLS),
     ("bin", binary_pipeline, BINARY_COLS)
-  ])
+  ], verbose_feature_names_out=False)
   
   return preprocessor
 
@@ -129,13 +129,19 @@ def process_data(input_path: str, output_dir: str) -> None:
     # Save transformed dataframes and the pipeline artifact (.pkl)
     joblib.dump(preprocessor, out_path/"preprocessor.pkl")
     
-    pd.DataFrame(X_train_processed).to_csv(out_path / "X_train.csv", index=False)
-    pd.DataFrame(X_test_processed).to_csv(out_path / "X_test.csv", index=False)
+    # Grab the feature names from the pipeline
+    feature_names = preprocessor.get_feature_names_out()
+    
+    # Save transformed dataframes with the correct column names
+    joblib.dump(preprocessor, out_path/"preprocessor.pkl")
+    
+    pd.DataFrame(X_train_processed, columns=feature_names).to_csv(out_path / "X_train.csv", index=False)
+    pd.DataFrame(X_test_processed, columns=feature_names).to_csv(out_path / "X_test.csv", index=False)
     y_train.to_csv(out_path / "y_train.csv", index=False)
     y_test.to_csv(out_path / "y_test.csv", index=False)
     
 if __name__ == "__main__":
   process_data(
-    input_path="/user/leuven/386/vsc38672/DATA/pipeline/stats/bioinfo_method/hosp-admit/data/raw/HOSP_ADMIT.csv",
-    output_dir="/user/leuven/386/vsc38672/DATA/pipeline/stats/bioinfo_method/hosp-admit/data/processed"
+    input_path="./data/raw/HOSP_ADMIT.csv",
+    output_dir="./data/processed"
   )
