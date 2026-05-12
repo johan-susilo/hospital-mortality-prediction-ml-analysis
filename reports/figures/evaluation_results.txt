@@ -6,8 +6,8 @@
 [Baseline (Predict All Survive)] Test PR-AUC: 0.159
 
 [Unregularized Logistic]
-  PR-AUC     | Train: 0.785 | Test: 0.540 | Drop: 0.245
-  ROC-AUC    | Train: 0.938 | Test: 0.821
+  PR-AUC     | Train: 0.785 | Test: 0.541 | Drop: 0.243
+  ROC-AUC    | Train: 0.937 | Test: 0.822
   Brier Loss | Train: 0.067 | Test: 0.111
 
 Best LASSO Parameter: {'C': 1.0}
@@ -22,9 +22,32 @@ Best Ridge Parameter: {'C': 1.0}
   ROC-AUC    | Train: 0.927 | Test: 0.840
   Brier Loss | Train: 0.072 | Test: 0.106
 
+
+[Variable Importance (Coefficients) - Regularized Models]
+  S_AD_ORIT: LASSO=-0.3800, Ridge=-0.3419
+  D_AD_ORIT: LASSO=-0.1431, Ridge=-0.2208
+
+
 ==================================================
  QUESTION 3: NON-LINEAR EFFECTS (GAMs)
 ==================================================
+--- Evaluating models WITH non-linear spline features ---
+
+[Unregularized Logistic (with Splines)]
+  PR-AUC     | Train: 0.804 | Test: 0.558 | Drop: 0.246
+  ROC-AUC    | Train: 0.943 | Test: 0.832
+  Brier Loss | Train: 0.063 | Test: 0.109
+
+[LASSO (L1) Logistic (with Splines)]
+  PR-AUC     | Train: 0.761 | Test: 0.560 | Drop: 0.200
+  ROC-AUC    | Train: 0.925 | Test: 0.854
+  Brier Loss | Train: 0.071 | Test: 0.101
+
+[Ridge (L2) Logistic (with Splines)]
+  PR-AUC     | Train: 0.765 | Test: 0.575 | Drop: 0.191
+  ROC-AUC    | Train: 0.930 | Test: 0.854
+  Brier Loss | Train: 0.070 | Test: 0.100
+
 -> GAM Non-Linearity Plots saved to: reports/figures/gam_partial_dependence_plots.png
 
 ==================================================

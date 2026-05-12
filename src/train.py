@@ -12,6 +12,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, StratifiedKFold
 from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss
 from sklearn.dummy import DummyClassifier
+from sklearn.preprocessing import SplineTransformer
+from sklearn.compose import ColumnTransformer
 
 from pygam import LogisticGAM, s
 
@@ -86,6 +88,18 @@ def run_full_pipeline(data_dir: str, output_dir: str) -> None:
     log(f"Best Ridge Parameter: {ridge_grid.best_params_}")
     evaluate_and_print("Ridge (L2) Logistic", ridge_grid.best_estimator_, X_train, y_train, X_test, y_test, log)
 
+    # Print out BP coefficients for Q4 comparisons
+    bp_features = ['S_AD_ORIT', 'D_AD_ORIT']
+    log("\n[Variable Importance (Coefficients) - Regularized Models]")
+    for bp in bp_features:
+        if bp in X_train.columns:
+            idx = X_train.columns.get_loc(bp)
+            lasso_coef = lasso_grid.best_estimator_.coef_[0][idx]
+            ridge_coef = ridge_grid.best_estimator_.coef_[0][idx]
+            log(f"  {bp}: LASSO={lasso_coef:.4f}, Ridge={ridge_coef:.4f}")
+        else:
+            log(f"  {bp}: Not found in features")
+    log("\n")
 
     log("="*50)
     log(" QUESTION 3: NON-LINEAR EFFECTS (GAMs)")
@@ -93,6 +107,35 @@ def run_full_pipeline(data_dir: str, output_dir: str) -> None:
     
     continuous_cols = ['AGE', 'S_AD_ORIT', 'D_AD_ORIT', 'ALT_BLOOD', 'AST_BLOOD', 'L_BLOOD', 'ROE', 'TIME_B_S']
     X_cont = X_train.iloc[:, :8].values 
+
+    # Evaluate non-linear terms in full models (Splines)
+    cont_indices = [X_train.columns.get_loc(c) for c in continuous_cols]
+    ct = ColumnTransformer([
+        ('splines', SplineTransformer(degree=3, n_knots=4, include_bias=False), cont_indices)
+    ], remainder='passthrough')
+
+    X_train_spline = ct.fit_transform(X_train)
+    X_test_spline = ct.transform(X_test)
+
+    log("--- Evaluating models WITH non-linear spline features ---\n")
+
+    # Unregularized with Splines
+    unreg_spline = LogisticRegression(penalty=None, solver='lbfgs', max_iter=5000)
+    unreg_spline.fit(X_train_spline, y_train)
+    evaluate_and_print("Unregularized Logistic (with Splines)", unreg_spline, X_train_spline, y_train, X_test_spline, y_test, log)
+
+    # LASSO with Splines
+    lasso_spline_base = LogisticRegression(penalty='l1', solver='saga', max_iter=5000, random_state=42)
+    lasso_spline_grid = GridSearchCV(lasso_spline_base, {'C': [0.001, 0.01, 0.1, 1.0, 10.0]}, cv=skf, scoring='average_precision', n_jobs=-1)
+    lasso_spline_grid.fit(X_train_spline, y_train)
+    evaluate_and_print("LASSO (L1) Logistic (with Splines)", lasso_spline_grid.best_estimator_, X_train_spline, y_train, X_test_spline, y_test, log)
+
+    # Ridge with Splines
+    ridge_spline_base = LogisticRegression(penalty='l2', solver='lbfgs', max_iter=5000, random_state=42)
+    ridge_spline_grid = GridSearchCV(ridge_spline_base, {'C': [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]}, cv=skf, scoring='average_precision', n_jobs=-1)
+    ridge_spline_grid.fit(X_train_spline, y_train)
+    evaluate_and_print("Ridge (L2) Logistic (with Splines)", ridge_spline_grid.best_estimator_, X_train_spline, y_train, X_test_spline, y_test, log)
+
     
     gam = LogisticGAM(s(0) + s(1) + s(2) + s(3) + s(4) + s(5) + s(6) + s(7))
     gam.gridsearch(X_cont, y_train, progress=False)
